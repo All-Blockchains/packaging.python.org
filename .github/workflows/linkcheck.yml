@@ -1,7 +1,6 @@
 name: Test
 
 on:
-  merge_group:
   push:
     branches-ignore:
     - gh-readonly-queue/**  # Temporary merge queue-related GH-made branches
@@ -11,6 +10,8 @@ on:
     - synchronize  # default
     - reopened  # default
     - ready_for_review  # used in PRs created from GitHub Actions workflows
+  schedule:
+    - cron: '0 0 * * *'  # Run daily at midnight UTC
   workflow_call:
 
 concurrency:
@@ -21,14 +22,10 @@ permissions: {}
 
 jobs:
   build:
-    name: ${{ matrix.noxenv }}
-    if: ${{ github.repository_owner == 'pypa' || github.event_name != 'schedule' }}
+    name: linkcheck
+    if: ${{ github.repository_owner == 'pypa' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    strategy:
-      matrix:
-        noxenv:
-        - build
 
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
@@ -46,27 +43,9 @@ jobs:
         run: |
           python -m pip install --upgrade nox virtualenv
 
-      - name: Nox ${{ matrix.noxenv }}
+      - name: Nox linkcheck
         env:
           # Authenticate github.com requests during linkcheck to avoid rate limits.
           GITHUB_TOKEN: ${{ github.token }}
         run: |
-          python -m nox -s ${{ matrix.noxenv }}
-
-
-  check:
-    # This job does nothing and is only used for the branch protection
-    # or multi-stage CI jobs, like making sure that all tests pass before
-    # a publishing job is started.
-    if: always()
-
-    needs:
-    - build
-
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Decide whether the needed jobs succeeded or failed
-      uses: re-actors/alls-green@05ac9388f0aebcb5727afa17fcccfecd6f8ec5fe # v1.2.2
-      with:
-        jobs: ${{ toJSON(needs) }}
+          python -m nox -s linkcheck
