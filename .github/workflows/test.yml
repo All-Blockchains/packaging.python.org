@@ -11,6 +11,8 @@ on:
     - synchronize  # default
     - reopened  # default
     - ready_for_review  # used in PRs created from GitHub Actions workflows
+  schedule:
+    - cron: '0 0 * * *'  # Run the linkcheck daily to surface failures independent of PRs
   workflow_call:
 
 concurrency:
@@ -25,10 +27,17 @@ jobs:
     if: ${{ github.repository_owner == 'pypa' || github.event_name != 'schedule' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    # Don't block PRs on linkcheck unrelated failures.
+    continue-on-error: ${{ matrix.ignore-errors || false }}
     strategy:
+      fail-fast: false
       matrix:
         noxenv:
         - build
+        - linkcheck
+        include:
+        - noxenv: linkcheck
+          ignore-errors: true
 
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
@@ -47,6 +56,9 @@ jobs:
           python -m pip install --upgrade nox virtualenv
 
       - name: Nox ${{ matrix.noxenv }}
+        env:
+          # Authenticate github.com requests during linkcheck to avoid rate limits.
+          GITHUB_TOKEN: ${{ matrix.noxenv == 'linkcheck' && github.token || '' }}
         run: |
           python -m nox -s ${{ matrix.noxenv }}
 
