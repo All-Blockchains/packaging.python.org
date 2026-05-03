@@ -11,8 +11,6 @@ on:
     - synchronize  # default
     - reopened  # default
     - ready_for_review  # used in PRs created from GitHub Actions workflows
-  schedule:
-    - cron: '0 0 * * *'  # Run the linkcheck daily to surface failures independent of PRs
   workflow_call:
 
 concurrency:
