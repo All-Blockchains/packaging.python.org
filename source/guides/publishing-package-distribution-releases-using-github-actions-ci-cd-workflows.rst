@@ -107,14 +107,11 @@ build the distribution packages.
 First, we'll define the job for building the dist packages of
 your project and storing them for later use:
 
-.. warning::
+.. tip::
 
-   This artifact configuration is intended for a single build job that uploads
-   one source distribution and one wheel. If you adapt it for several
-   platform-specific wheel jobs, use separate artifact names for each job and
-   adjust the download step accordingly. The v4+ artifact actions do not support
-   multiple jobs uploading to the same artifact; see
-   `actions/upload-artifact#472`_.
+   If you adapt this workflow to build multiple platform-specific wheels, use
+   uniquely named artifacts for each build job and adjust the download step
+   accordingly.
 
 .. literalinclude:: github-actions-ci-cd-sample/publish-to-pypi.yml
    :language: yaml
@@ -237,8 +234,6 @@ sure that your release pipeline remains healthy!
    https://github.com/actions/download-artifact
 .. _`upload-artifact`:
    https://github.com/actions/upload-artifact
-.. _`actions/upload-artifact#472`:
-   https://github.com/actions/upload-artifact/issues/472
 .. _Secrets:
    https://docs.github.com/en/actions/reference/encrypted-secrets
 .. _Trusted Publishing: https://docs.pypi.org/trusted-publishers/
